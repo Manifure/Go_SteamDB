@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>My SteamDB</title>
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+<main>
+    <header>
+        <a class="logo" href="/">SteamDB Demo</a>
+        <form action="/search" method="GET">
+            <input autofocus class="search-input" value=""
+                   placeholder="Enter a news topic" type="search" name="q">
+        </form>
+        <a href="https://github.com/manifure" class="button
+      github-button">View on Github</a>
+    </header>
+    <section class="container">
+        <ul class="search-results">
+            {{ range .Result }}
+                <li class="news-article">
+                    <div>
+                        <a target="_blank" rel="noreferrer noopener" href="https://store.steampowered.com/app/{{ .AppID }}/">
+                            <h3 class="title">{{.Name }}</h3>
+                        </a>
+                        <p class="description">{{ .AppID }}</p>
+                        <div class="metadata">
+                            <img class="article-image" src="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{{ .AppID }}/header.jpg">
+                        </div>
+                    </div>
+
+                </li>
+            {{ end }}
+        </ul>
+    </section>
+</main>
+</body>
+</html>
