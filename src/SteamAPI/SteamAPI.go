@@ -8,21 +8,28 @@ import (
 	"strings"
 )
 
-const apiURL = "https://api.steampowered.com/ISteamApps/GetAppList/v2/"
+const (
+	apiGetAppURL = "https://api.steampowered.com/IStoreService/GetAppList/v1/?key=%s&max_results=50000"
+	key          = "BBF805EFC23EADDF7002101399628FCD"
+)
 
 type SteamApp struct {
-	AppID uint64
-	Name  string
+	AppID               uint64
+	Name                string
+	last_modified       uint64
+	price_change_number uint64
 }
 
 type AppListResponse struct {
-	AppList struct {
-		Apps []SteamApp
+	Response struct {
+		Apps              []SteamApp
+		have_more_results bool
+		last_appid        uint64
 	}
 }
 
 func GetAppListV2() (AppListResponse, error) {
-	resp, err := http.Get(apiURL)
+	resp, err := http.Get(fmt.Sprintf(apiGetAppURL, key))
 	if err != nil {
 		fmt.Println("Error fetching app list:", err)
 	}
@@ -43,7 +50,7 @@ func GetAppListV2() (AppListResponse, error) {
 
 func SearchGameFromAppList(appList AppListResponse, searchTitle string) []SteamApp {
 	var matchedApps []SteamApp
-	for _, app := range appList.AppList.Apps {
+	for _, app := range appList.Response.Apps {
 		if strings.Contains(strings.ToLower(app.Name), strings.ToLower(searchTitle)) {
 			//fmt.Printf("Found game: %s (AppID: %d)\n", app.Name, app.AppID)
 			matchedApps = append(matchedApps, app)
@@ -51,42 +58,3 @@ func SearchGameFromAppList(appList AppListResponse, searchTitle string) []SteamA
 	}
 	return matchedApps
 }
-
-//const BaseSteamAPIURLProduction = "https://api.steampowered.com"
-//
-//var BaseSteamAPIURL = BaseSteamAPIURLProduction
-//
-//type SteamMethod string
-//
-//func GetAppList() ([]SteamApp, error) {
-//	getAppList := NewSteamMethod("ISteamApps", "GetAppList", 2)
-//	var resp appListJson
-//	err := getAppList.Request(nil, &resp)
-//	if err != nil {
-//		return nil, err
-//	}
-//	return resp.AppList.Apps, nil
-//}
-//
-//func NewSteamMethod(interf, method string, version int) SteamMethod {
-//	m := fmt.Sprintf("%v/%v/%v/v%v/", BaseSteamAPIURL, interf, method, strconv.Itoa(version))
-//	return SteamMethod(m)
-//}
-//func (s SteamMethod) Request(data url.Values, v interface{}) error {
-//	url := string(s)
-//	if data != nil {
-//		url += "?" + data.Encode()
-//	}
-//	resp, err := http.Get(url)
-//	if err != nil {
-//		return err
-//	}
-//	defer resp.Body.Close()
-//
-//	if resp.StatusCode != 200 {
-//		return fmt.Errorf("steamapi %s Status code %d", s, resp.StatusCode)
-//	}
-//
-//	d := json.NewDecoder(resp.Body)
-//
-//	return d.Decode(&v)
