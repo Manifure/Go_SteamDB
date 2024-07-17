@@ -19,6 +19,13 @@
       github-button">View on Github</a>
     </header>
     <section class="container">
+        <div class="result-count">
+            {{ if (gt .TotalResults 0)}}
+                <p><strong>{{ .TotalResults }}</strong> results found.</p>
+            {{ else if (eq .TotalResults 0) }}
+                <p>No results.</p>
+            {{ end }}
+        </div>
         <ul class="search-results">
             {{ range .Result }}
                 <li class="news-article">

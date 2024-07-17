@@ -9,10 +9,11 @@ import (
 )
 
 type Search struct {
-	SearchKey  string
-	NextPage   int
-	TotalPages int
-	Result     []SteamAPI.SteamApp
+	SearchKey    string
+	NextPage     int
+	TotalPages   int
+	TotalResults int
+	Result       []SteamAPI.SteamApp
 }
 
 var tpl = template.Must(template.ParseFiles("html/home.html"))
@@ -53,7 +54,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	//}
 
 	search.Result = matched
-
+	search.TotalResults = len(matched)
 	err = tpl.Execute(w, search)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

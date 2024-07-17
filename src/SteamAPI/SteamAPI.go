@@ -50,6 +50,9 @@ func GetAppListV2() (AppListResponse, error) {
 
 func SearchGameFromAppList(appList AppListResponse, searchTitle string) []SteamApp {
 	var matchedApps []SteamApp
+	if searchTitle == "" {
+		return matchedApps
+	}
 	for _, app := range appList.Response.Apps {
 		if strings.Contains(strings.ToLower(app.Name), strings.ToLower(searchTitle)) {
 			//fmt.Printf("Found game: %s (AppID: %d)\n", app.Name, app.AppID)
