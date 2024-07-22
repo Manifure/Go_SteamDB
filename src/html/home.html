@@ -6,18 +6,20 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>My SteamDB</title>
     <link rel="stylesheet" href="../static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-<main>
-    <header>
+<header>
+    <div class="header-content">
         <a class="logo" href="/">SteamDB Demo</a>
         <form action="/search" method="GET">
             <input autofocus class="search-input" value="{{ .SearchKey }}"
                    placeholder="Search..." type="search" name="q">
         </form>
-        <a href="https://github.com/manifure" class="button
-      github-button">View on Github</a>
-    </header>
+        <a href="https://github.com/Manifure/Go_SteamDB" class="button github-button">View on Github</a>
+    </div>
+</header>
+<main>
     <section class="container">
         <div class="result-count">
             {{ if (gt .TotalResults 0)}}
@@ -28,21 +30,21 @@
         </div>
         <ul class="search-results">
             {{ range .Result }}
-                <li class="news-article">
-                    <div>
-                        <a target="_blank" rel="noreferrer noopener" href="https://store.steampowered.com/app/{{ .AppID }}/">
-                            <h3 class="title">{{.Name }}</h3>
-                        </a>
-                        <p class="description">{{ .AppID }}</p>
-                        <div class="metadata">
-                            <img class="article-image" src="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{{ .AppID }}/header.jpg">
+                <li class="game-card">
+                    <a target="_blank" rel="noreferrer noopener" href="https://store.steampowered.com/app/{{ .AppID }}/">
+                        <img class="game-image" src="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{{ .AppID }}/header.jpg" alt="{{ .Name }}">
+                        <div class="game-info">
+                            <h3 class="game-title">{{.Name }}</h3>
+                            <p class="game-id">App ID: {{ .AppID }}</p>
                         </div>
-                    </div>
-
+                    </a>
                 </li>
             {{ end }}
         </ul>
     </section>
 </main>
+<footer>
+    <p>&copy; 2023 SteamDB Demo. All rights reserved.</p>
+</footer>
 </body>
 </html>

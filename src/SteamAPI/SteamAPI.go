@@ -9,12 +9,13 @@ import (
 )
 
 const (
-	apiGetAppURL = "https://api.steampowered.com/IStoreService/GetAppList/v1/?key=%s&max_results=50000"
+	apiGetAppURL = "https://api.steampowered.com/IStoreService/GetAppList/v1/?key=%s&last_appid=%d&max_results=50000"
 	key          = "BBF805EFC23EADDF7002101399628FCD"
 )
 
 type SteamApp struct {
 	AppID               uint64
+	Id                  uint64
 	Name                string
 	last_modified       uint64
 	price_change_number uint64
@@ -23,13 +24,13 @@ type SteamApp struct {
 type AppListResponse struct {
 	Response struct {
 		Apps              []SteamApp
-		have_more_results bool
-		last_appid        uint64
+		Have_more_results bool
+		Last_appid        uint64
 	}
 }
 
-func GetAppListV2() (AppListResponse, error) {
-	resp, err := http.Get(fmt.Sprintf(apiGetAppURL, key))
+func GetAppListV2(last_appid uint64) (AppListResponse, error) {
+	resp, err := http.Get(fmt.Sprintf(apiGetAppURL, key, last_appid))
 	if err != nil {
 		fmt.Println("Error fetching app list:", err)
 	}

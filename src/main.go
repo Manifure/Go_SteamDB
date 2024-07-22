@@ -1,8 +1,11 @@
 package main
 
 import (
+	"SteamDB/src/SqlFunc"
 	"SteamDB/src/SteamAPI"
+	"database/sql"
 	"html/template"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -41,40 +44,43 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 
 	search.NextPage = next
 
-	resp, err := SteamAPI.GetAppListV2()
+	psqlInfo := SqlFunc.GetPsqlInfo()
+	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		log.Fatal(err)
 	}
-	matched := SteamAPI.SearchGameFromAppList(resp, search.SearchKey)
-	search.TotalPages = len(matched)
+	defer db.Close()
 
-	//for _, game := range matched {
-	//	fmt.Printf("Found game: %s (AppID: %d)\n", game.Name, game.AppID)
-	//}
+	const query = "SELECT * FROM steam_games WHERE name ILIKE $1 limit 48"
+	searchPattern := "%" + search.SearchKey + "%"
+	res, err := db.Query(query, searchPattern)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer res.Close()
 
-	search.Result = matched
-	search.TotalResults = len(matched)
+	var showApp []SteamAPI.SteamApp
+
+	for res.Next() {
+
+		var app SteamAPI.SteamApp
+		err = res.Scan(&app.Id, &app.AppID, &app.Name)
+		if err != nil {
+			log.Fatal(err)
+		}
+		showApp = append(showApp, app)
+	}
+
+	search.Result = showApp
+	search.TotalResults = len(showApp)
 	err = tpl.Execute(w, search)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-
-	//fmt.Println("Search Query is: ", searchKey)
-	//fmt.Println("Results page is: ", page)
 }
 
 func homePage(w http.ResponseWriter, r *http.Request) {
 	tpl.Execute(w, nil)
-	//w.Header().Set("Content-Type", "text/html")
-	//db, err := SteamAPI.GetAppList()
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//fmt.Println("Get App List")
-	//for _, v := range db[36:46] {
-	//	fmt.Fprintf(w, "<a href=\"https://store.steampowered.com/app/%d\" target=\"_blank\"><img src=\"https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/%d/header.jpg\" alt=\"%s\"></a><br/>\n", v.AppId, v.AppId, v.Name)
-	//}
 }
 
 func main() {
