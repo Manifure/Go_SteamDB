@@ -39,7 +39,7 @@ header {
     border-radius: 4px;
     background-color: #316282;
     color: #c7d5e0;
-    width: 300px;
+    width: 800px;
 }
 
 .search-input::placeholder {
@@ -77,6 +77,30 @@ main {
     list-style-type: none;
 }
 
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.page-link {
+    padding: 0.1rem 0.5rem;
+    margin: 0 5px;
+    background-color: #66c0f4;
+    color: white;
+    text-decoration: none;
+    border-radius: 24px;
+}
+
+.page-link:hover {
+    background-color: #4b8bb2;
+}
+
+.current-page {
+    margin: 0 10px;
+}
+
 .game-card {
     background-color: #2a475e;
     border-radius: 8px;
@@ -95,8 +119,8 @@ main {
 
 .game-image {
     width: 100%;
-    height: 150px;
-    object-fit: cover;
+    height: 128px;
+    object-fit: fill;
 }
 
 .game-info {

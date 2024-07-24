@@ -41,6 +41,17 @@
                 </li>
             {{ end }}
         </ul>
+        <div class="pagination">
+            {{ if .HasPrevPage }}
+                <a href="/search?q={{ .SearchKey }}&page={{ sub .CurrentPage 1 }}" class="page-link"><</a>
+            {{ end }}
+
+            <span class="current-page">{{ .CurrentPage }} of {{ .TotalPages }}</span>
+
+            {{ if .HasNextPage }}
+                <a href="/search?q={{ .SearchKey }}&page={{ add .CurrentPage 1 }}" class="page-link">></a>
+            {{ end }}
+        </div>
     </section>
 </main>
 <footer>
