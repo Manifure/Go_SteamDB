@@ -6,7 +6,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -31,15 +33,15 @@ var funcMap = template.FuncMap{
 	},
 }
 
-var tpl = template.Must(template.New("home.html").Funcs(funcMap).ParseFiles("html/home.html"))
+func handleError(c *gin.Context, err error, statusCode int) {
+	log.Println(err)
+	c.String(statusCode, err.Error())
+}
 
-func parseParams(r *http.Request) (string, int, error) {
-	params := r.URL.Query()
-	searchKey := params.Get("q")
-	page := params.Get("page")
-	if page == "" {
-		page = "1"
-	}
+func parseParams(c *gin.Context) (string, int, error) {
+	//params := r.URL.Query()
+	searchKey := c.Query("q")
+	page := c.DefaultQuery("page", "1")
 
 	currentPage, err := strconv.Atoi(page)
 	if err != nil {
@@ -80,28 +82,31 @@ func fetchResults(ctx context.Context, db *sql.DB, searchKey string, itemsPerPag
 	return apps, nil
 }
 
-func searchHandler(w http.ResponseWriter, r *http.Request) {
-	searchKey, currentPage, err := parseParams(r)
+func searchHandler(c *gin.Context) {
+	searchKey, currentPage, err := parseParams(c)
+	if err != nil {
+		handleError(c, err, http.StatusBadRequest)
+		return
+	}
 	const itemsPerPage = 48
 	offset := (currentPage - 1) * itemsPerPage
 
 	db, err := SqlFunc.GetDBConnection()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		handleError(c, err, http.StatusInternalServerError)
 		return
 	}
 	defer db.Close()
 
-	ctx := r.Context()
-	totalResults, err := fetchTotalResults(ctx, db, searchKey)
+	totalResults, err := fetchTotalResults(c.Request.Context(), db, searchKey)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		handleError(c, err, http.StatusInternalServerError)
 		return
 	}
 
-	results, err := fetchResults(ctx, db, searchKey, itemsPerPage, offset)
+	results, err := fetchResults(c.Request.Context(), db, searchKey, itemsPerPage, offset)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		handleError(c, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -115,21 +120,23 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		HasPrevPage:  currentPage > 1,
 	}
 
-	err = tpl.Execute(w, search)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+	c.HTML(http.StatusOK, "home.html", search)
 }
 
-func homePage(w http.ResponseWriter, r *http.Request) {
-	tpl.Execute(w, nil)
+func homePage(c *gin.Context) {
+	c.HTML(http.StatusOK, "home.html", nil)
 }
 
 func main() {
-	mux := http.NewServeMux()
-	fs := http.FileServer(http.Dir("static"))
-	mux.Handle("/static/", http.StripPrefix("/static/", fs))
-	mux.HandleFunc("/search", searchHandler)
-	mux.HandleFunc("/", homePage)
-	http.ListenAndServe(":8080", mux)
+	r := gin.Default()
+
+	r.SetFuncMap(funcMap)
+	r.LoadHTMLFiles("html/home.html")
+
+	r.Static("/static", "static")
+
+	r.GET("/search", searchHandler)
+	r.GET("/", homePage)
+
+	r.Run(":8080")
 }
