@@ -78,3 +78,12 @@ func GetPsqlInfo() string {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 	return psqlInfo
 }
+
+func GetDBConnection() (*sql.DB, error) {
+	psqlInfo := GetPsqlInfo()
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		return nil, fmt.Errorf("unable to connect to database: %w", err)
+	}
+	return db, nil
+}

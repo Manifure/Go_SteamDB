@@ -3,11 +3,11 @@ package main
 import (
 	"SteamDB/src/SqlFunc"
 	"SteamDB/src/SteamAPI"
+	"context"
 	"database/sql"
+	"fmt"
 	"html/template"
-	"log"
 	"net/http"
-	"net/url"
 	"strconv"
 )
 
@@ -33,86 +33,92 @@ var funcMap = template.FuncMap{
 
 var tpl = template.Must(template.New("home.html").Funcs(funcMap).ParseFiles("html/home.html"))
 
-func searchHandler(w http.ResponseWriter, r *http.Request) {
-	u, err := url.Parse(r.URL.String())
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-	params := u.Query()
+func parseParams(r *http.Request) (string, int, error) {
+	params := r.URL.Query()
 	searchKey := params.Get("q")
 	page := params.Get("page")
 	if page == "" {
 		page = "1"
 	}
 
-	search := &Search{}
-	search.SearchKey = searchKey
-
 	currentPage, err := strconv.Atoi(page)
 	if err != nil {
-		http.Error(w, "Invalid page number", http.StatusInternalServerError)
-		return
+		return "", 0, fmt.Errorf("invalid page number: %w", err)
 	}
 
-	itemsPerPage := 48
+	return searchKey, currentPage, nil
+}
+
+func fetchTotalResults(ctx context.Context, db *sql.DB, searchKey string) (int, error) {
+	countQuery := "SELECT COUNT(*) FROM steam_games WHERE name ILIKE $1"
+	searchPattern := "%" + searchKey + "%"
+	var count int
+	err := db.QueryRowContext(ctx, countQuery, searchPattern).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch total results: %w", err)
+	}
+	return count, nil
+}
+
+func fetchResults(ctx context.Context, db *sql.DB, searchKey string, itemsPerPage, offset int) ([]SteamAPI.SteamApp, error) {
+	query := "SELECT * FROM steam_games WHERE name ILIKE $1 LIMIT $2 OFFSET $3"
+	rows, err := db.QueryContext(ctx, query, "%"+searchKey+"%", itemsPerPage, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch results: %w", err)
+	}
+	defer rows.Close()
+
+	var apps []SteamAPI.SteamApp
+	for rows.Next() {
+		var app SteamAPI.SteamApp
+		err = rows.Scan(&app.Id, &app.AppID, &app.Name)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+		apps = append(apps, app)
+	}
+	return apps, nil
+}
+
+func searchHandler(w http.ResponseWriter, r *http.Request) {
+	searchKey, currentPage, err := parseParams(r)
+	const itemsPerPage = 48
 	offset := (currentPage - 1) * itemsPerPage
 
-	psqlInfo := SqlFunc.GetPsqlInfo()
-	db, err := sql.Open("postgres", psqlInfo)
+	db, err := SqlFunc.GetDBConnection()
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	defer db.Close()
 
-	countQuery := "SELECT COUNT(*) FROM steam_games WHERE name ILIKE $1"
-	searchPattern := "%" + search.SearchKey + "%"
-	var count int
-	err = db.QueryRow(countQuery, searchPattern).Scan(&count)
+	ctx := r.Context()
+	totalResults, err := fetchTotalResults(ctx, db, searchKey)
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	query := "SELECT * FROM steam_games WHERE name ILIKE $1 LIMIT $2 OFFSET $3"
-	res, err := db.Query(query, searchPattern, itemsPerPage, offset)
+	results, err := fetchResults(ctx, db, searchKey, itemsPerPage, offset)
 	if err != nil {
-		log.Fatal(err)
-	}
-	defer res.Close()
-
-	var showApp []SteamAPI.SteamApp
-
-	for res.Next() {
-
-		var app SteamAPI.SteamApp
-		err = res.Scan(&app.Id, &app.AppID, &app.Name)
-		if err != nil {
-			log.Fatal(err)
-		}
-		showApp = append(showApp, app)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	search.Result = showApp
-	search.TotalResults = count
-	search.CurrentPage = currentPage
-	search.TotalPages = (count + itemsPerPage - 1) / itemsPerPage
-	search.HasNextPage = currentPage < search.TotalPages
-	search.HasPrevPage = currentPage > 1
+	search := &Search{
+		SearchKey:    searchKey,
+		Result:       results,
+		TotalResults: totalResults,
+		CurrentPage:  currentPage,
+		TotalPages:   (totalResults + itemsPerPage - 1) / itemsPerPage,
+		HasNextPage:  currentPage < (totalResults+itemsPerPage-1)/itemsPerPage,
+		HasPrevPage:  currentPage > 1,
+	}
 
 	err = tpl.Execute(w, search)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-}
-
-func parseIntOrDefault(s string, def int) (int, error) {
-	if s == "" {
-		return def, nil
-	}
-	i, err := strconv.Atoi(s)
-	if err != nil {
-		return 0, err
-	}
-	return i, nil
 }
 
 func homePage(w http.ResponseWriter, r *http.Request) {
