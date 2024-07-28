@@ -1,13 +1,13 @@
 package main
 
 import (
+	"SteamDB/src/HtmlFunc"
 	"SteamDB/src/SqlFunc"
 	"SteamDB/src/SteamAPI"
 	"context"
 	"database/sql"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"html/template"
 	"log"
 	"net/http"
 	"strconv"
@@ -24,22 +24,12 @@ type Search struct {
 	HasPrevPage  bool
 }
 
-var funcMap = template.FuncMap{
-	"sub": func(a, b int) int {
-		return a - b
-	},
-	"add": func(a, b int) int {
-		return a + b
-	},
-}
-
 func handleError(c *gin.Context, err error, statusCode int) {
 	log.Println(err)
 	c.String(statusCode, err.Error())
 }
 
 func parseParams(c *gin.Context) (string, int, error) {
-	//params := r.URL.Query()
 	searchKey := c.Query("q")
 	page := c.DefaultQuery("page", "1")
 
@@ -130,7 +120,7 @@ func homePage(c *gin.Context) {
 func main() {
 	r := gin.Default()
 
-	r.SetFuncMap(funcMap)
+	r.SetFuncMap(HtmlFunc.FuncMap)
 	r.LoadHTMLFiles("html/home.html")
 
 	r.Static("/static", "static")
