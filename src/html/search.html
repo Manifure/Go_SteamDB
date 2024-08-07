@@ -1,0 +1,39 @@
+{{ define "search" }}
+    {{ template "header" }}
+    <main>
+        <section class="container">
+            <div class="result-count">
+                {{ if (gt .TotalResults 0)}}
+                    <p><strong>{{ .TotalResults }}</strong> results found.</p>
+                {{ else if (eq .TotalResults 0) }}
+                    <p>No results.</p>
+                {{ end }}
+            </div>
+            <ul class="search-results">
+                {{ range .Result }}
+                    <li class="game-card">
+                        <a target="_blank" rel="noreferrer noopener" href="https://store.steampowered.com/app/{{ .AppID }}/">
+                            <img class="game-image" src="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{{ .AppID }}/header.jpg" alt="{{ .Name }}">
+                            <div class="game-info">
+                                <h3 class="game-title">{{.Name }}</h3>
+                                <p class="game-id">App ID: {{ .AppID }}</p>
+                            </div>
+                        </a>
+                    </li>
+                {{ end }}
+            </ul>
+            <div class="pagination">
+                {{ if .HasPrevPage }}
+                    <a href="/search?q={{ .SearchKey }}&page={{ sub .CurrentPage 1 }}" class="page-link"><</a>
+                {{ end }}
+
+                <span class="current-page">{{ .CurrentPage }} of {{ .TotalPages }}</span>
+
+                {{ if .HasNextPage }}
+                    <a href="/search?q={{ .SearchKey }}&page={{ add .CurrentPage 1 }}" class="page-link">></a>
+                {{ end }}
+            </div>
+        </section>
+    </main>
+    {{ template "footer" }}
+{{ end }}

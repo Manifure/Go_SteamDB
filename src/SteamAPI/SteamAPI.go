@@ -1,6 +1,7 @@
 package SteamAPI
 
 import (
+	"SteamDB/src/config"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -8,10 +9,13 @@ import (
 	"strings"
 )
 
-const (
-	apiGetAppURL = "https://api.steampowered.com/IStoreService/GetAppList/v1/?key=%s&last_appid=%d&max_results=50000"
-	key          = "BBF805EFC23EADDF7002101399628FCD"
-)
+const apiGetAppURL = "https://api.steampowered.com/IStoreService/GetAppList/v1/?key=%s&last_appid=%d&max_results=50000"
+
+var apiConfig config.Config
+
+func SetAPIConfig(cfg config.Config) {
+	apiConfig = cfg
+}
 
 type SteamApp struct {
 	AppID               uint64
@@ -30,7 +34,7 @@ type AppListResponse struct {
 }
 
 func GetAppListV2(last_appid uint64) (AppListResponse, error) {
-	resp, err := http.Get(fmt.Sprintf(apiGetAppURL, key, last_appid))
+	resp, err := http.Get(fmt.Sprintf(apiGetAppURL, apiConfig.Key, last_appid))
 	if err != nil {
 		fmt.Println("Error fetching app list:", err)
 	}

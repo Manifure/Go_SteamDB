@@ -1,0 +1,25 @@
+{{ define "header" }}
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>My SteamDB</title>
+        <link rel="stylesheet" href="../static/style.css">
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    </head>
+    <body>
+    <header>
+        <div class="header-content">
+            <a class="logo" href="/">SteamDB Demo</a>
+            <div class="search-form">
+            <form action="/search" method="GET">
+                <input autofocus class="search-input" value="{{ .SearchKey }}"
+                       placeholder="Search..." type="search" name="q">
+            </form>
+            </div>
+            <a href="https://github.com/Manifure/Go_SteamDB" class="button github-button">View on Github</a>
+        </div>
+    </header>
+{{ end }}

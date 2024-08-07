@@ -4,11 +4,18 @@
     box-sizing: border-box;
 }
 
+html, body {
+    height: 100%;
+}
+
 body {
     font-family: 'Roboto', sans-serif;
     background-color: #1b2838;
     color: #c7d5e0;
     line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 header {
@@ -40,6 +47,7 @@ header {
     background-color: #316282;
     color: #c7d5e0;
     width: 800px;
+    max-width: 800px;
 }
 
 .search-input::placeholder {
@@ -60,14 +68,18 @@ header {
 }
 
 main {
+    flex: 1;
     max-width: 1200px;
+    width: 100%;
     margin: 2rem auto;
     padding: 0 1rem;
 }
 
 .result-count {
+    flex: auto;
     margin-bottom: 1rem;
     font-size: 1.1rem;
+    text-align: center;
 }
 
 .search-results {
@@ -120,7 +132,7 @@ main {
 .game-image {
     width: 100%;
     height: 128px;
-    object-fit: fill;
+    object-fit: cover;
 }
 
 .game-info {
@@ -143,7 +155,7 @@ footer {
     color: #8f98a0;
     text-align: center;
     padding: 1rem 0;
-    margin-top: 2rem;
+    margin-top: auto;
 }
 
 @media (max-width: 768px) {

@@ -4,6 +4,7 @@ import (
 	"SteamDB/src/HtmlFunc"
 	"SteamDB/src/SqlFunc"
 	"SteamDB/src/SteamAPI"
+	"SteamDB/src/config"
 	"context"
 	"database/sql"
 	"fmt"
@@ -110,23 +111,47 @@ func searchHandler(c *gin.Context) {
 		HasPrevPage:  currentPage > 1,
 	}
 
-	c.HTML(http.StatusOK, "home.html", search)
+	c.HTML(http.StatusOK, "search", search)
 }
 
 func homePage(c *gin.Context) {
-	c.HTML(http.StatusOK, "home.html", nil)
+	c.HTML(http.StatusOK, "home", nil)
 }
 
 func main() {
+	cfg := config.MustLoad()
+
+	dbConfig := config.Config{
+		SQLConfig: config.SQLConfig{
+			Host:     cfg.Host,
+			Port:     cfg.Port,
+			User:     cfg.User,
+			Password: cfg.Password,
+			Database: cfg.Database,
+		},
+	}
+
+	apiConfig := config.Config{
+		SteamAPIConfig: config.SteamAPIConfig{
+			Key: cfg.Key,
+		},
+	}
+
+	SqlFunc.SetDBConfig(dbConfig)
+	SteamAPI.SetAPIConfig(apiConfig)
+
 	r := gin.Default()
 
 	r.SetFuncMap(HtmlFunc.FuncMap)
-	r.LoadHTMLFiles("html/home.html")
+	r.LoadHTMLGlob("html/*")
 
 	r.Static("/static", "static")
 
 	r.GET("/search", searchHandler)
 	r.GET("/", homePage)
 
-	r.Run(":8080")
+	err := r.Run(cfg.Address)
+	if err != nil {
+		log.Fatal("Failed to start server: ", err)
+	}
 }

@@ -2,19 +2,18 @@ package SqlFunc
 
 import (
 	"SteamDB/src/SteamAPI"
+	"SteamDB/src/config"
 	"database/sql"
 	"fmt"
 	"github.com/lib/pq"
 	"log"
 )
 
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = "1"
-	dbname   = "postgres"
-)
+var dbConfig config.Config
+
+func SetDBConfig(cfg config.Config) {
+	dbConfig = cfg
+}
 
 // Вспомогательная функция для одной иттерации получения и записи игр в sql таблицу
 // Это нужно, потому что SteamAPI позволяет вывести максимум 50k значений из базы данных
@@ -75,7 +74,8 @@ func fillDbFromSteam() {
 }
 
 func GetPsqlInfo() string {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		dbConfig.Host, dbConfig.Port, dbConfig.User, dbConfig.Password, dbConfig.Database)
 	return psqlInfo
 }
 
