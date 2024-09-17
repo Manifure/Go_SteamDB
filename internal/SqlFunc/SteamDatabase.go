@@ -1,17 +1,17 @@
 package SqlFunc
 
 import (
-	"SteamDB/src/SteamAPI"
-	"SteamDB/src/config"
+	"SteamDB/configs"
+	"SteamDB/internal/SteamAPI"
 	"database/sql"
 	"fmt"
 	"github.com/lib/pq"
 	"log"
 )
 
-var dbConfig config.Config
+var dbConfig configs.Config
 
-func SetDBConfig(cfg config.Config) {
+func SetDBConfig(cfg configs.Config) {
 	dbConfig = cfg
 }
 

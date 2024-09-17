@@ -1,10 +1,10 @@
 package main
 
 import (
-	"SteamDB/src/HtmlFunc"
-	"SteamDB/src/SqlFunc"
-	"SteamDB/src/SteamAPI"
-	"SteamDB/src/config"
+	"SteamDB/configs"
+	"SteamDB/internal/HtmlFunc"
+	"SteamDB/internal/SqlFunc"
+	"SteamDB/internal/SteamAPI"
 	"context"
 	"database/sql"
 	"fmt"
@@ -119,10 +119,10 @@ func homePage(c *gin.Context) {
 }
 
 func main() {
-	cfg := config.MustLoad()
+	cfg := configs.MustLoad()
 
-	dbConfig := config.Config{
-		SQLConfig: config.SQLConfig{
+	dbConfig := configs.Config{
+		SQLConfig: configs.SQLConfig{
 			Host:     cfg.Host,
 			Port:     cfg.Port,
 			User:     cfg.User,
@@ -131,8 +131,8 @@ func main() {
 		},
 	}
 
-	apiConfig := config.Config{
-		SteamAPIConfig: config.SteamAPIConfig{
+	apiConfig := configs.Config{
+		SteamAPIConfig: configs.SteamAPIConfig{
 			Key: cfg.Key,
 		},
 	}

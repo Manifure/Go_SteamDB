@@ -1,7 +1,8 @@
-package config
+package configs
 
 import (
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/joho/godotenv"
 	"log"
 	"os"
 	"time"
@@ -32,6 +33,9 @@ type SteamAPIConfig struct {
 }
 
 func MustLoad() Config {
+	if err := godotenv.Load(".env"); err != nil {
+		log.Print("No .env file found")
+	}
 	configPath := os.Getenv("CONFIG_PATH") //Путь задается из переменной окружения
 	if configPath == "" {
 		log.Fatal("CONFIG_PATH environment variable not set")

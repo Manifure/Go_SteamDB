@@ -1,7 +1,7 @@
 package SteamAPI
 
 import (
-	"SteamDB/src/config"
+	"SteamDB/configs"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,9 +11,9 @@ import (
 
 const apiGetAppURL = "https://api.steampowered.com/IStoreService/GetAppList/v1/?key=%s&last_appid=%d&max_results=50000"
 
-var apiConfig config.Config
+var apiConfig configs.Config
 
-func SetAPIConfig(cfg config.Config) {
+func SetAPIConfig(cfg configs.Config) {
 	apiConfig = cfg
 }
 
