@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: mydb
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  app:
+    build:
+      dockerfile: Dockerfile
+    container_name: myapp
+    ports:
+      - "8082:8082"
+    depends_on:
+      - db
+    environment:
+      CONFIG_PATH: /SteamDB/configs/local.yaml

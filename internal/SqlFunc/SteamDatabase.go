@@ -34,7 +34,7 @@ func getAppToSql(data SteamAPI.AppListResponse, lastAppid uint64, stmt *sql.Stmt
 }
 
 // Функция для заполнения sql таблицы списком всех игр из базы данных данных Steam
-func fillDbFromSteam() {
+func FillDbFromSteam() {
 	psqlInfo := GetPsqlInfo()
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {

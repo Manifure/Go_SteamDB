@@ -140,6 +140,8 @@ func main() {
 	SqlFunc.SetDBConfig(dbConfig)
 	SteamAPI.SetAPIConfig(apiConfig)
 
+	SqlFunc.FillDbFromSteam()
+
 	r := gin.Default()
 
 	r.SetFuncMap(HtmlFunc.FuncMap)
